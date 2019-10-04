@@ -253,7 +253,7 @@ public:
     dns_opt.host = opts->host;
     dns_opt.ns = opts->ns;
     dns_opt.mbox = opts->mbox;
-    dns_opt.datattl = 3600;
+    dns_opt.datattl = 300;
     dns_opt.nsttl = 40000;
     dns_opt.cb = GetIPList;
     dns_opt.port = opts->nPort;
@@ -336,8 +336,8 @@ extern "C" void* ThreadDumper(void*) {
   int count = 0;
   do {
     Sleep(100000 << count); // First 100s, than 200s, 400s, 800s, 1600s, and then 3200s forever
-    if (count < 5)
-        count++;
+//    if (count < 5)
+//        count++;
     {
       vector<CAddrReport> v = db.GetAll();
       sort(v.begin(), v.end(), StatCompare);
@@ -350,11 +350,11 @@ extern "C" void* ThreadDumper(void*) {
         rename("dnsseed.dat.new", "dnsseed.dat");
       }
       FILE *d = fopen("dnsseed.dump", "w");
-      fprintf(d, "# address                                        good  lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  %%(30d)  blocks      svcs  version\n");
+      fprintf(d, "# address                                        good  lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  %%(30d)  blocks      svcs  version                         reason\n");
       double stat[5]={0,0,0,0,0};
       for (vector<CAddrReport>::const_iterator it = v.begin(); it < v.end(); it++) {
         CAddrReport rep = *it;
-        fprintf(d, "%-47s  %4d  %11" PRId64 "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64 "  %5i \"%s\"\n", rep.ip.ToString().c_str(), (int)rep.fGood, rep.lastSuccess, 100.0*rep.uptime[0], 100.0*rep.uptime[1], 100.0*rep.uptime[2], 100.0*rep.uptime[3], 100.0*rep.uptime[4], rep.blocks, rep.services, rep.clientVersion, rep.clientSubVersion.c_str());
+        fprintf(d, "%-47s  %4d  %11" PRId64 "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64 "  %5i %-25.25s %s\n", rep.ip.ToString().c_str(), (int)rep.fGood, rep.lastSuccess, 100.0*rep.uptime[0], 100.0*rep.uptime[1], 100.0*rep.uptime[2], 100.0*rep.uptime[3], 100.0*rep.uptime[4], rep.blocks, rep.services, rep.clientVersion, rep.clientSubVersion.c_str(), rep.reason.c_str());
         stat[0] += rep.uptime[0];
         stat[1] += rep.uptime[1];
         stat[2] += rep.uptime[2];
@@ -399,7 +399,37 @@ extern "C" void* ThreadStats(void*) {
   return nullptr;
 }
 
-static const string mainnet_seeds[] = {"80.210.127.1","80.210.127.2","80.210.127.3","80.210.127.4","80.210.127.5","173.249.1.107","193.37.152.99","173.212.231.29","35.237.76.125","35.243.175.130","35.227.93.52","34.73.151.66", ""};
+static const string mainnet_seeds[] = {
+    "35.236.65.201",
+    "35.245.129.215",
+    "173.249.1.107",
+    "193.37.152.99",
+    "173.212.231.29",
+    "35.237.76.125",
+    "35.243.175.130",
+    "35.227.93.52",
+    "34.73.151.66",
+    "80.210.127.1",
+    "80.210.127.2",
+    "80.210.127.3",
+    "80.210.127.4",
+    "80.210.127.5",
+    "80.210.127.6",
+    "80.210.127.7",
+    "80.210.127.8",
+    "80.210.127.9",
+    "80.210.127.10",
+    "80.210.127.11",
+    "80.210.127.12",
+    "80.210.127.13",
+    "80.210.127.14",
+    "80.210.127.15",
+    "80.210.127.16",
+    "80.210.127.17",
+    "80.210.127.18",
+    "80.210.127.19",
+    "80.210.127.20",
+    ""};
 static const string testnet_seeds[] = {"80.210.127.1","80.210.127.2","80.210.127.3","80.210.127.4","80.210.127.5","173.249.1.107","193.37.152.99","173.212.231.29","35.237.76.125","35.243.175.130","35.227.93.52","34.73.151.66", ""};
 static const string *seeds = mainnet_seeds;
 

@@ -12,8 +12,8 @@
 
 #define MIN_RETRY 1000
 
-#define REQUIRE_VERSION 70914
-//#define REQUIRE_VERSION 70920
+//#define REQUIRE_VERSION 70914
+#define REQUIRE_VERSION 70930
 
 static inline int GetRequireHeight(const bool testnet = fTestNet)
 {
@@ -59,6 +59,7 @@ public:
   std::string clientSubVersion;
   int64_t lastSuccess;
   bool fGood;
+  std::string reason;
   uint64_t services;
 };
 
@@ -97,6 +98,7 @@ public:
     ret.uptime[4] = stat1M.reliability;
     ret.lastSuccess = ourLastSuccess;
     ret.fGood = IsGood();
+    ret.reason = IsGoodReason();
     ret.services = services;
     return ret;
   }
@@ -118,6 +120,25 @@ public:
     
     return false;
   }
+
+  const char * IsGoodReason() const {
+    if (ip.GetPort() != GetDefaultPort()) return "Invalid port";
+    if (!(services & NODE_NETWORK)) return "Isn't a node";
+    if (!ip.IsRoutable()) return "Isn't routable";
+    if (clientVersion && clientVersion < REQUIRE_VERSION) return "invalid version";
+    if (blocks && blocks < GetRequireHeight()) return "invalid block count";
+
+    if (total <= 3 && success * 2 >= total) return "stable";
+
+    if (stat2H.reliability > 0.85 && stat2H.count >  2) return "stable";
+    if (stat8H.reliability > 0.70 && stat8H.count >  4) return "stable";
+    if (stat1D.reliability > 0.55 && stat1D.count >  8) return "stable";
+    if (stat1W.reliability > 0.45 && stat1W.count > 16) return "stable";
+    if (stat1M.reliability > 0.35 && stat1M.count > 32) return "stable";
+
+    return "Unstable";
+  }
+
   int GetBanTime() const {
     if (IsGood()) return 0;
     if (clientVersion && clientVersion < 31900) { return 604800; }
